@@ -1,0 +1,99 @@
+# Environment variable
+environment:
+    name: bxrbasov
+    email: basovpostupit@gmail.com
+    profile: default
+
+spring:
+    # Database configuration
+    datasource:
+        url: jdbc:postgresql://localhost:5434/platform
+        hikari:
+            username: postgres
+            password: password
+            driver-class-name: org.postgresql.Driver
+    jpa:
+        properties:
+            hibernate:
+                default_schema: user_schema
+                show_sql: true
+                format_sql: true
+                hbm2ddl.auto: update
+                dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# Actuator monitoring configuration
+management:
+    endpoints:
+        web:
+            exposure:
+                include: '*'
+
+# Eureka configuration
+eureka:
+    instance:
+        preferIpAddress: true
+    client:
+        registerWithEureka: true
+        fetchRegistry: true
+        serviceUrl:
+            defaultZone: http://localhost:8070/eureka/
+
+# Server configuration
+server:
+    port: 8081
+
+# Resilence4j configuration
+resilience4j.circuitbreaker:
+    instances:
+        userService:
+            ringBufferSizeInClosedState: 5
+            ringBufferSizeInHalfOpenState: 3
+            waitDurationInOpenState: 10s
+            failureRateThreshold: 50
+            recordExceptions:
+                - org.springframework.web.client.HttpServerErrorException
+                - java.io.IOException
+                - java.util.concurrent.TimeoutException
+                - org.springframework.web.client.ResourceAccessException
+
+resilience4j.retry:
+    instances:
+        retryUserService:
+            maxRetryAttempts: 5
+            waitDuration: 10s
+            enableExponentialBackoff: true
+            exponentialBackoffMultiplier: 2
+            retryExceptions:
+                - org.springframework.web.client.HttpServerErrorException
+                - java.io.IOException
+                - java.util.concurrent.TimeoutException
+
+resilience4j.bulkhead:
+    instances:
+        bulkheadUserService:
+            maxConcurrentCalls: 10
+            maxWaitDuration: 10ms
+
+resilience4j.thread-pool-bulkhead:
+    instances:
+        bulkheadUserService:
+            maxThreadPoolSize: 1
+            coreThreadPoolSize: 1
+            queueCapacity: 1
+            keepAliveDuration: 20ms
+            writableStackTraceEnabled: true
+
+resilience4j.ratelimiter:
+    instances:
+        userService:
+            limitForPeriod: 10
+            limitRefreshPeriod: 1s
+            timeoutDuration: 100ms
+            registerHealthIndicator: true
+            eventConsumerBufferSize: 100
+
+resilience4j.timelimiter:
+    instances:
+        backendA:
+            timeoutDuration: 2s
+            cancelRunningFuture: true

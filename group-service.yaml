@@ -1,0 +1,113 @@
+# Environment variable
+environment:
+    name: bxrbasov
+    email: basovpostupit@gmail.com
+    profile: default
+
+spring:
+    # Database configuration
+    datasource:
+        url: jdbc:postgresql://localhost:5434/platform
+        hikari:
+            username: postgres
+            password: password
+            driver-class-name: org.postgresql.Driver
+    jpa:
+        properties:
+            hibernate:
+                default_schema: group_schema
+                show_sql: true
+                format_sql: true
+                hbm2ddl.auto: update
+                dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# Actuator monitoring configuration
+management:
+    endpoints:
+        web:
+            exposure:
+                include: '*'
+
+# Eureka configuration
+eureka:
+    instance:
+        preferIpAddress: true
+    client:
+        registerWithEureka: true
+        fetchRegistry: true
+        serviceUrl:
+            defaultZone: http://localhost:8070/eureka/
+
+# Server configuration
+server:
+    port: 8082
+
+# Resilence4j configuration
+resilience4j.circuitbreaker:
+    instances:
+        groupService:
+            registerHealthIndicator: true
+            ringBufferSizeInClosedState: 6
+            ringBufferSizeInHalfOpenState: 4
+            slidingWindowSize: 10
+            permittedNumberOfCallsInHalfOpenState: 3
+            slidingWindowType: TIME_BASED
+            minimumNumberOfCalls: 20
+            waitDurationInOpenState: 20s
+            failureRateThreshold: 60
+            eventConsumerBufferSize: 10
+
+resilience4j.retry:
+    instances:
+        backendA:
+            maxAttempts: 3
+            waitDuration: 10s
+            enableExponentialBackoff: true
+            exponentialBackoffMultiplier: 2
+            retryExceptions:
+                - org.springframework.web.client.HttpServerErrorException
+                - java.io.IOException
+
+        backendB:
+            maxAttempts: 3
+            waitDuration: 10s
+            retryExceptions:
+                - org.springframework.web.client.HttpServerErrorException
+                - java.io.IOException
+
+resilience4j.bulkhead:
+    instances:
+        bulkheadGroupService:
+            maxConcurrentCalls: 10
+            maxWaitDuration: 10ms
+
+resilience4j.thread-pool-bulkhead:
+    instances:
+        bulkheadGroupService:
+            maxThreadPoolSize: 1
+            coreThreadPoolSize: 1
+            queueCapacity: 1
+            keepAliveDuration: 20ms
+            writableStackTraceEnabled: true
+
+resilience4j.ratelimiter:
+    instances:
+        backendA:
+            limitForPeriod: 10
+            limitRefreshPeriod: 1s
+            timeoutDuration: 0
+            registerHealthIndicator: true
+            eventConsumerBufferSize: 100
+        backendB:
+            limitForPeriod: 6
+            limitRefreshPeriod: 500ms
+            timeoutDuration: 3s
+
+resilience4j.timelimiter:
+    instances:
+        backendA:
+            timeoutDuration: 2s
+            cancelRunningFuture: true
+        backendB:
+            timeoutDuration: 1s
+            cancelRunningFuture: false

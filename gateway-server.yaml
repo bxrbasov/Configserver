@@ -1,0 +1,35 @@
+# Gateway configuration
+spring:
+    cloud:
+        discovery:
+            enabled: true
+        gateway:
+            discovery:
+                locator:
+                    enabled: true
+                    lowerCaseServiceId: true
+
+# Actuator monitoring configuration
+management:
+    server:
+        port: 8072
+    endpoints:
+        enabled-by-default: false
+        web:
+            exposure:
+                include: '*'
+
+# Eureka configuration
+eureka:
+    instance:
+        hostname: localhost
+        preferIpAddress: true
+    client:
+        registerWithEureka: true
+        fetchRegistry: true
+        serviceUrl:
+            defaultZone: http://${eureka.instance.hostname}:8070/eureka/
+
+# Server configuration
+server:
+    port: 8072
