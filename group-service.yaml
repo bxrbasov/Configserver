@@ -1,13 +1,7 @@
-# Environment variable
-environment:
-    name: bxrbasov
-    email: basovpostupit@gmail.com
-    profile: default
-
 spring:
     # Database configuration
     datasource:
-        url: jdbc:postgresql://localhost:5434/platform
+        url: jdbc:postgresql://database:5432/platform
         hikari:
             username: postgres
             password: password
@@ -20,6 +14,53 @@ spring:
                 format_sql: true
                 hbm2ddl.auto: update
                 dialect: org.hibernate.dialect.PostgreSQLDialect
+    # Security configuration
+    security:
+        oauth2:
+            resourceserver:
+                jwt:
+                    issuer-uri: http://keycloak:8080/realms/spmia-realm
+            client:
+                provider:
+                    keycloak:
+                        issuer-uri: http://keycloak:8080/realms/spmia-realm
+                registration:
+                    keycloak:
+                        client-id: platform
+                        client-secret: NLMpBpyZhwu4pTSCpBuskCeGBZv24p3i
+                        scope: openid
+    # Zipkin configuration
+    zipkin:
+        baseUrl: http://zipkin:9411
+    sleuth:
+        sampler:
+            percentage: 1
+    # Kafka configuration
+    kafka:
+        consumer:
+            bootstrap-servers: localhost:9092, localhost:9094, localhost:9096
+            group-id: user-events-group
+            properties:
+                spring.json.trusted.packages: '*'
+
+        producer:
+            bootstrap-servers: localhost:9092, localhost:9094, localhost:9096
+            acks: all
+            properties:
+                delivery:
+                    timeout:
+                        ms: 20000
+                linger:
+                    ms: 0
+                request:
+                    timeout:
+                        ms: 10000
+                spring. json.trusted.packages: com.example.group.events
+
+# Redis configuration
+redis:
+    server: redis
+    port: 6379
 
 # Actuator monitoring configuration
 management:
@@ -36,7 +77,7 @@ eureka:
         registerWithEureka: true
         fetchRegistry: true
         serviceUrl:
-            defaultZone: http://localhost:8070/eureka/
+            defaultZone: http://eurekaserver:8070/eureka/
 
 # Server configuration
 server:
@@ -56,58 +97,3 @@ resilience4j.circuitbreaker:
             waitDurationInOpenState: 20s
             failureRateThreshold: 60
             eventConsumerBufferSize: 10
-
-resilience4j.retry:
-    instances:
-        backendA:
-            maxAttempts: 3
-            waitDuration: 10s
-            enableExponentialBackoff: true
-            exponentialBackoffMultiplier: 2
-            retryExceptions:
-                - org.springframework.web.client.HttpServerErrorException
-                - java.io.IOException
-
-        backendB:
-            maxAttempts: 3
-            waitDuration: 10s
-            retryExceptions:
-                - org.springframework.web.client.HttpServerErrorException
-                - java.io.IOException
-
-resilience4j.bulkhead:
-    instances:
-        bulkheadGroupService:
-            maxConcurrentCalls: 10
-            maxWaitDuration: 10ms
-
-resilience4j.thread-pool-bulkhead:
-    instances:
-        bulkheadGroupService:
-            maxThreadPoolSize: 1
-            coreThreadPoolSize: 1
-            queueCapacity: 1
-            keepAliveDuration: 20ms
-            writableStackTraceEnabled: true
-
-resilience4j.ratelimiter:
-    instances:
-        backendA:
-            limitForPeriod: 10
-            limitRefreshPeriod: 1s
-            timeoutDuration: 0
-            registerHealthIndicator: true
-            eventConsumerBufferSize: 100
-        backendB:
-            limitForPeriod: 6
-            limitRefreshPeriod: 500ms
-            timeoutDuration: 3s
-
-resilience4j.timelimiter:
-    instances:
-        backendA:
-            timeoutDuration: 2s
-            cancelRunningFuture: true
-        backendB:
-            timeoutDuration: 1s
-            cancelRunningFuture: false

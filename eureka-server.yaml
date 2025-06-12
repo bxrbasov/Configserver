@@ -1,6 +1,7 @@
+# Eureka configuration
 eureka:
     instance:
-        hostname: localhost
+        hostname: eurekaserver
     client:
         registerWithEureka: true
         fetchRegistry: true

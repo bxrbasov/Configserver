@@ -1,13 +1,7 @@
-# Environment variable
-environment:
-    name: bxrbasov
-    email: basovpostupit@gmail.com
-    profile: default
-
 spring:
     # Database configuration
     datasource:
-        url: jdbc:postgresql://localhost:5434/platform
+        url: jdbc:postgresql://database:5432/platform
         hikari:
             username: postgres
             password: password
@@ -20,6 +14,41 @@ spring:
                 format_sql: true
                 hbm2ddl.auto: update
                 dialect: org.hibernate.dialect.PostgreSQLDialect
+    # Security configuration
+    security:
+        oauth2:
+            resourceserver:
+                jwt:
+                    issuer-uri: http://keycloak:8080/realms/spmia-realm
+            client:
+                provider:
+                    keycloak:
+                        issuer-uri: http://keycloak:8080/realms/spmia-realm
+                registration:
+                    keycloak:
+                        client-id: platform
+                        client-secret: NLMpBpyZhwu4pTSCpBuskCeGBZv24p3i
+                        scope: openid
+    # Zipkin configuration
+    zipkin:
+        baseUrl: http://zipkin:9411
+    sleuth:
+        sampler:
+            percentage: 1
+    # Kafka configuration
+    kafka:
+        producer:
+            bootstrap-servers: localhost:9092, localhost:9094, localhost:9096
+            acks: all
+            properties:
+                delivery:
+                    timeout:
+                        ms: 20000
+                linger:
+                    ms: 0
+                request:
+                    timeout:
+                        ms: 10000
 
 # Actuator monitoring configuration
 management:
@@ -36,7 +65,7 @@ eureka:
         registerWithEureka: true
         fetchRegistry: true
         serviceUrl:
-            defaultZone: http://localhost:8070/eureka/
+            defaultZone: http://eurekaserver:8070/eureka/
 
 # Server configuration
 server:
